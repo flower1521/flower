@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 设置Log4j2的自身log级别为warn -->
+<!-- 日志级别以及优先级排序：OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+<!-- Configuration后面的status，这个用于设置log4j自身内部的信息输出，可以不设置，
+     当设置成trace时，你会看到log4j内部各种详细输出 -->
+<!-- monitorInterval：Log4j能够自动检测修改配置 文件和重新配置本身，设置间隔秒数 -->
+<configuration status="INFO" monitorInterval="30">
+    <Properties>
+        <Property name="PATTERN" value="[%d{HH:mm:ss.SSS} %-5level] [%t] %c{3} - %msg%n" />
+        <property name="FILE_PATH" value="/mySoft/logs" />
+        <property name="FILE_SIZE" value="50 MB" />
+    </Properties>
+    <Appenders>
+        <!-- 添加一个控制台追加器 -->
+        <!-- 控制台日志打印 -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${PATTERN}"/>
+        </Console>
+        <!-- 添加一个文本追加器 -->
+        <!-- 生产环境日志打印 -->
+        <!-- fileName表示创建的日志文件名，filePattern表示如果日志策略按照日期与大小做限定的话，如果大小超过50m就会按该格式将之前的的日志文件重命名，并重新创建新的fileName。同理，如果日期超过限定的时间，也会进行同样的操作，下文定义一天建一个，如果想一分钟建一个则filePattern="${FILE_PATH}/demo-%d{yyyy-MM-dd HH-mm}-%i.log" 如此定义-->
+        <RollingFile name="ProdFile"
+                     fileName="${FILE_PATH}/transactional.log"
+                     filePattern="${FILE_PATH}/demo-%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern="${PATTERN}" />
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="${FILE_SIZE}"/>
+            </Policies>
+            <Filters>
+                <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY" />
+            </Filters>
+        </RollingFile>
+    </Appenders>
+
+    <!-- 然后定义logger，只有定义了logger并引入appender，appender才会生效 -->
+    <loggers>
+        <!-- 过滤掉spring和hibernate的一些无用的debug信息 -->
+        <logger name="org.springframework" level="INFO"></logger>
+        <!--<logger name="org.mybatis" level="INFO"></logger>-->
+        <!-- root部分定义了log4j2的默认输出级别和方式 -->
+        <root level="info">
+            <appender-ref ref="Console" />
+            <appender-ref ref="ProdFile" />
+        </root>
+    </loggers>
+
+</configuration>
